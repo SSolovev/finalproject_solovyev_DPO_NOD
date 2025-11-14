@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "finalproject"
+version = "0.1.0"
+description = "Простая файловая база данных с консольным интерфейсом для образовательных целей."
+authors = ["Solovyev Sergey"]
+readme = "README.md"
+packages = [
+    { include = "finalproject", from = "src" },
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+project = "src.finalproject.main:main"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+prettytable = "^3.16.0"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = ["venv", ".venv", "dist", "__pycache__"]
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "W", # pycodestyle warnings
+    "I", # isort
+]
+ignore = []
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.14.4"
