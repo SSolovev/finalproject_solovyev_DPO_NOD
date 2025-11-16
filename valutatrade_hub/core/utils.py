@@ -21,7 +21,7 @@ def load_data(file_path: str) -> Any:
             return json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
         print(f"Ошибка загрузки файла {file_path}")
-        return [] if file_path.endswith('s.json') else {}
+        return [] if 'users' in file_path or 'portfolios' in file_path else {}
 
 
 def save_data(file_path: str, data: Any):

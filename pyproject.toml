@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "valutatrade-hub"
-version = "0.1.0"
+version = "0.2.0"
 description = "Простая файловая база данных с консольным интерфейсом для образовательных целей."
 authors = ["Solovyev Sergey"]
 readme = "README.md"
@@ -19,6 +19,7 @@ trade = "valutatrade_hub.cli.interface:cli"
 python = ">=3.11"
 prettytable = "^3.16.0"
 click = "^8.3.1"
+toml = "^0.10.2"
 
 [tool.ruff]
 line-length = 88
@@ -36,3 +37,14 @@ ignore = []
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.14.4"
+
+[tool.valutatrade]
+data_path = "data"
+users_file = "users.json"
+portfolios_file = "portfolios.json"
+rates_file = "rates.json"
+rates_ttl_seconds = 300  # 5 минут
+default_base_currency = "USD"
+log_path = "logs"
+log_file = "actions.log"
+log_format = "%(asctime)s - %(levelname)s - %(message)s"

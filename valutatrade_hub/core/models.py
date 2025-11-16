@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 from typing import Dict
 
+from valutatrade_hub.core.exceptions import InsufficientFundsError
+
 
 class User:
     """Пользователь системы."""
@@ -112,6 +114,15 @@ class Wallet:
         self.balance -= amount
         print(f"Со счета {self.currency_code} списано {amount:.4f}. Текущий баланс: {self.balance:.4f}")
 
+    def withdraw(self, amount: float):
+        """Снятие средств с баланса."""
+        if not isinstance(amount, (int, float)) or amount <= 0:
+            raise ValueError("Сумма снятия должна быть положительным числом.")
+        if amount > self.balance:
+            # Используем новое кастомное исключение
+            raise InsufficientFundsError(available=self.balance, required=amount, code=self.currency_code)
+
+        self.balance -= amount
     def get_balance_info(self) -> str:
         """Возвращает информацию о текущем балансе."""
         return f"Кошелек: {self.currency_code}, Баланс: {self.balance:.4f}"

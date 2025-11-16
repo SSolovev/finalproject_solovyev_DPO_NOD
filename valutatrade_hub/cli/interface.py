@@ -1,4 +1,6 @@
 import click
+
+from valutatrade_hub.core.exceptions import CurrencyNotFoundError, InsufficientFundsError, ApiRequestError
 from ..core import usecases
 from ..core.utils import RATES_FILE, load_data
 
@@ -96,47 +98,46 @@ def show_portfolio(base):
 @click.option('--currency', required=True, help="Код покупаемой валюты (например, BTC).")
 @click.option('--amount', required=True, type=float, help="Количество покупаемой валюты.")
 def buy(currency, amount):
-    """Купить валюту за USD."""
+    """Купить валюту."""
     user = usecases.get_logged_in_user()
     if not user:
-        click.echo("Ошибка: Сначала выполните login", err=True)
+        click.echo("Ошибка: Сначала выполните login.", err=True)
         return
 
     try:
-        result = usecases.buy_currency(user, currency, amount)
-        click.echo(
-            f"Покупка выполнена: {result['amount']:.4f} {result['currency']} по курсу {result['rate']:.2f} {result['base_currency']}/{result['currency']}")
-        click.echo(f"Оценочная стоимость покупки: {result['cost']:.2f} {result['base_currency']}")
-        click.echo("Изменения в портфеле:")
-        click.echo(f"- {result['currency']}: было {result['old_balance']:.4f} → стало {result['new_balance']:.4f}")
-    except ValueError as e:
-        click.echo(f"Ошибка: {e}", err=True)
+        result = usecases.buy_currency(user=user, currency=currency, amount=amount)
+        click.echo(f"Покупка выполнена: {result['amount']:.4f} {result['currency']}")
+        click.echo(f"Оценочная стоимость: {result['cost']:.2f} {result['base_currency']}")
+    except (InsufficientFundsError, CurrencyNotFoundError, ApiRequestError, ValueError) as e:
+        click.echo(f"Ошибка покупки: {e}", err=True)
+        if isinstance(e, CurrencyNotFoundError):
+            click.echo("Совет: используйте команду 'list-currencies' для просмотра доступных валют.")
+        if isinstance(e, ApiRequestError):
+            click.echo("Совет: проверьте сетевое подключение или обновите кеш курсов (если есть команда).")
 
 
 @cli.command()
 @click.option('--currency', required=True, help="Код продаваемой валюты.")
 @click.option('--amount', required=True, type=float, help="Количество продаваемой валюты.")
 def sell(currency, amount):
-    """Продать валюту и получить USD."""
+    """Продать валюту."""
     user = usecases.get_logged_in_user()
     if not user:
-        click.echo("Ошибка: Сначала выполните login", err=True)
+        click.echo("Ошибка: Сначала выполните login.", err=True)
         return
 
     try:
-        result = usecases.sell_currency(user, currency, amount)
-        click.echo(
-            f"Продажа выполнена: {result['amount']:.4f} {result['currency']} по курсу {result['rate']:.2f} {result['base_currency']}/{result['currency']}")
+        result = usecases.sell_currency(user=user, currency=currency, amount=amount)
+        click.echo(f"Продажа выполнена: {result['amount']:.4f} {result['currency']}")
         click.echo(f"Оценочная выручка: {result['revenue']:.2f} {result['base_currency']}")
-        click.echo("Изменения в портфеле:")
-        click.echo(f"- {result['currency']}: было {result['old_balance']:.4f} → стало {result['new_balance']:.4f}")
     except ValueError as e:
-        if "не найден" in str(e).lower():
-            click.echo(
-                f"Ошибка: У вас нет кошелька '{currency.upper()}'. Он создаётся автоматически при первой покупке.",
-                err=True)
+        # Отдельно обрабатываем ошибку отсутствия кошелька
+        if "кошелек" in str(e).lower() and "не найден" in str(e).lower():
+             click.echo(f"Ошибка: У вас нет кошелька '{currency.upper()}'. Он создаётся при первой покупке.", err=True)
         else:
-            click.echo(f"Ошибка: {e}", err=True)
+             click.echo(f"Ошибка продажи: {e}", err=True)
+    except (InsufficientFundsError, CurrencyNotFoundError, ApiRequestError) as e:
+        click.echo(f"Ошибка продажи: {e}", err=True)
 
 
 @cli.command('get-rate')
@@ -149,11 +150,23 @@ def get_rate(from_curr, to_curr):
             raise ValueError("Коды валют не могут быть пустыми.")
 
         rate, updated_at = usecases.get_exchange_rate(from_curr, to_curr)
-        click.echo(f"Курс: 1 {from_curr.upper()} = {rate:.6f} {to_curr.upper()}")
-        click.echo(f"Данные на: {updated_at}")
-    except ValueError as e:
+        click.echo(f"Курс: 1 {from_curr.upper()} = {rate:.6f} {to_curr.upper()} (Данные на: {updated_at})")
+    except (ValueError, CurrencyNotFoundError, ApiRequestError) as e:
         click.echo(f"Ошибка: {e}", err=True)
+        if isinstance(e, CurrencyNotFoundError):
+            click.echo("Совет: используйте команду 'list-currencies' для просмотра доступных валют.")
 
+@cli.command()
+def list_currencies():
+    """Показать список всех поддерживаемых валют."""
+    click.echo("Поддерживаемые валюты:")
+    supported_codes = ["USD", "EUR", "RUB", "BTC", "ETH"]
+    for code in supported_codes:
+        try:
+            currency_obj = usecases.get_currency_info(code)
+            click.echo(f"- {currency_obj.get_display_info()}")
+        except CurrencyNotFoundError:
+            continue
 
 if __name__ == '__main__':
     cli()
