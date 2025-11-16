@@ -11,7 +11,8 @@ class InsufficientFundsError(BaseTradeError):
         self.required = required
         self.code = code
         super().__init__(
-            f"Недостаточно средств: доступно {available:.4f} {code}, требуется {required:.4f} {code}"
+            f"Недостаточно средств: доступно {available:.4f} {code},"
+            f" требуется {required:.4f} {code}"
         )
 
 class CurrencyNotFoundError(BaseTradeError):
@@ -21,7 +22,8 @@ class CurrencyNotFoundError(BaseTradeError):
         super().__init__(f"Валюта с кодом '{code}' не найдена в реестре.")
 
 class ApiRequestError(BaseTradeError):
-    """Вызывается при ошибках взаимодействия с внешними сервисами (например, парсером)."""
+    """Вызывается при ошибках взаимодействия
+    с внешними сервисами (например, парсером)."""
     def __init__(self, reason: str):
         self.reason = reason
         super().__init__(f"Ошибка при обращении к внешнему API: {reason}")

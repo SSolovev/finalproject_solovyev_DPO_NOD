@@ -1,7 +1,7 @@
 # valutatrade_hub/infra/database.py
 import json
 import os
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from .settings import settings
 
@@ -22,9 +22,15 @@ class DatabaseManager:
     def _init_paths(self):
         """Инициализирует пути к файлам данных."""
         data_path = settings.get("data_path", "data")
-        self.users_file = os.path.join(data_path, settings.get("users_file", "users.json"))
-        self.portfolios_file = os.path.join(data_path, settings.get("portfolios_file", "portfolios.json"))
-        self.rates_file = os.path.join(data_path, settings.get("rates_file", "rates.json"))
+        self.users_file = os.path.join(data_path,
+                                       settings.get("users_file",
+                                                    "users.json"))
+        self.portfolios_file = os.path.join(data_path,
+                                            settings.get("portfolios_file",
+                                                         "portfolios.json"))
+        self.rates_file = os.path.join(data_path,
+                                       settings.get("rates_file",
+                                                    "rates.json"))
         self.session_file = os.path.join(data_path, ".session")
         os.makedirs(data_path, exist_ok=True)
 

@@ -19,7 +19,9 @@ class User:
 
     def get_user_info(self) -> str:
         """Выводит информацию о пользователе."""
-        return f"ID: {self._user_id}, Имя: {self._username}, Дата регистрации: {self._registration_date.strftime('%Y-%m-%d %H:%M')}"
+        return (f"ID: {self._user_id}, Имя: {self._username}, "
+                f"Дата регистрации: {self._registration_date
+                .strftime('%Y-%m-%d %H:%M')}")
 
     @property
     def user_id(self) -> int:
@@ -103,26 +105,20 @@ class Wallet:
         if not isinstance(amount, (int, float)) or amount <= 0:
             raise ValueError("Сумма пополнения должна быть положительным числом.")
         self.balance += amount
-        print(f"Баланс {self.currency_code} пополнен на {amount:.4f}. Текущий баланс: {self.balance:.4f}")
+        print(f"Баланс {self.currency_code} пополнен на "
+              f"{amount:.4f}. Текущий баланс: {self.balance:.4f}")
 
     def withdraw(self, amount: float):
         """Снятие средств с баланса."""
         if not isinstance(amount, (int, float)) or amount <= 0:
             raise ValueError("Сумма снятия должна быть положительным числом.")
         if amount > self.balance:
-            raise ValueError(f"Недостаточно средств. Доступно: {self.balance:.4f} {self.currency_code}")
-        self.balance -= amount
-        print(f"Со счета {self.currency_code} списано {amount:.4f}. Текущий баланс: {self.balance:.4f}")
-
-    def withdraw(self, amount: float):
-        """Снятие средств с баланса."""
-        if not isinstance(amount, (int, float)) or amount <= 0:
-            raise ValueError("Сумма снятия должна быть положительным числом.")
-        if amount > self.balance:
-            # Используем новое кастомное исключение
-            raise InsufficientFundsError(available=self.balance, required=amount, code=self.currency_code)
+            raise InsufficientFundsError(available=self.balance,
+                                         required=amount,
+                                         code=self.currency_code)
 
         self.balance -= amount
+
     def get_balance_info(self) -> str:
         """Возвращает информацию о текущем балансе."""
         return f"Кошелек: {self.currency_code}, Баланс: {self.balance:.4f}"
@@ -134,7 +130,8 @@ class Wallet:
     @classmethod
     def from_dict(cls, data: Dict) -> 'Wallet':
         """Десериализация объекта из словаря."""
-        return cls(currency_code=data['currency_code'], balance=data.get('balance', 0.0))
+        return cls(currency_code=data['currency_code'],
+                   balance=data.get('balance', 0.0))
 
 
 class Portfolio:
@@ -214,7 +211,8 @@ class Portfolio:
                         rate = 1 / exchange_rates[reverse_rate_key]['rate']
                     # rate = 1 / exchange_rates[reverse_rate_key]
                     else:
-                        print(f"Предупреждение: курс для {rate_key} не найден, валюта не учитывается в общей сумме.")
+                        print(f"Предупреждение: курс для {rate_key} не найден, "
+                              f"валюта не учитывается в общей сумме.")
                         continue
                 else:
                     rate = exchange_rates[rate_key]['rate']
@@ -228,11 +226,13 @@ class Portfolio:
         """Сериализация объекта в словарь."""
         return {
             "user_id": self._user_id,
-            "wallets": {code: wallet.to_dict() for code, wallet in self._wallets.items()}
+            "wallets": {code: wallet.to_dict()
+                        for code, wallet in self._wallets.items()}
         }
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'Portfolio':
         """Десериализация объекта из словаря."""
-        wallets = {code: Wallet.from_dict(w_data) for code, w_data in data.get('wallets', {}).items()}
+        wallets = {code: Wallet.from_dict(w_data) for code, w_data
+                   in data.get('wallets', {}).items()}
         return cls(user_id=data['user_id'], wallets=wallets)

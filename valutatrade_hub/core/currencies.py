@@ -12,7 +12,8 @@ class Currency(ABC):
         if not isinstance(name, str) or not name.strip():
             raise ValueError("Имя валюты не может быть пустым.")
         if not isinstance(code, str) or not (2 <= len(code) <= 5) or ' ' in code:
-            raise ValueError("Код валюты должен быть строкой из 2-5 символов без пробелов.")
+            raise ValueError("Код валюты должен быть строкой "
+                             "из 2-5 символов без пробелов.")
 
         self.name: str = name
         self.code: str = code.upper()
@@ -44,7 +45,8 @@ class CryptoCurrency(Currency):
         self.market_cap: float = market_cap
 
     def get_display_info(self) -> str:
-        return f"[CRYPTO] {self.code} — {self.name} (Algo: {self.algorithm}, MCAP: {self.market_cap:.2e})"
+        return (f"[CRYPTO] {self.code} — {self.name} "
+                f"(Algo: {self.algorithm}, MCAP: {self.market_cap:.2e})")
 
 
 # --- Реестр валют (Фабрика) ---
@@ -52,8 +54,10 @@ _CURRENCIES: Dict[str, Currency] = {
     "USD": FiatCurrency(name="US Dollar", code="USD", issuing_country="United States"),
     "EUR": FiatCurrency(name="Euro", code="EUR", issuing_country="Eurozone"),
     "RUB": FiatCurrency(name="Russian Ruble", code="RUB", issuing_country="Russia"),
-    "BTC": CryptoCurrency(name="Bitcoin", code="BTC", algorithm="SHA-256", market_cap=1.12e12),
-    "ETH": CryptoCurrency(name="Ethereum", code="ETH", algorithm="Ethash", market_cap=4.5e11),
+    "BTC": CryptoCurrency(name="Bitcoin", code="BTC", algorithm="SHA-256",
+                          market_cap=1.12e12),
+    "ETH": CryptoCurrency(name="Ethereum", code="ETH", algorithm="Ethash",
+                          market_cap=4.5e11),
 }
 
 
@@ -67,5 +71,6 @@ def get_currency(code: str) -> Currency:
     """
     currency = _CURRENCIES.get(code.upper())
     if currency is None:
-        raise CurrencyNotFoundError(f"Валюта с кодом '{code.upper()}' не найдена в реестре.")
+        raise CurrencyNotFoundError(f"Валюта с кодом '{code.upper()}' "
+                                    f"не найдена в реестре.")
     return currency

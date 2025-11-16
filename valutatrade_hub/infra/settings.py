@@ -1,6 +1,8 @@
 # valutatrade_hub/infra/settings.py
-import toml
 from typing import Any
+
+import toml
+
 
 class SettingsLoader:
     """
@@ -23,11 +25,13 @@ class SettingsLoader:
     def reload(self):
         """Загружает или перезагружает конфигурацию из файла."""
         try:
-            with open('pyproject.toml', 'r', encoding='utf-8') as f:
+            with (open('pyproject.toml', 'r', encoding='utf-8') as f):
                 pyproject_data = toml.load(f)
-                self._config = pyproject_data.get('tool', {}).get('valutatrade', {})
+                self._config = pyproject_data.get('tool', {}
+                                                  ).get('valutatrade', {})
         except FileNotFoundError:
-            print("Warning: pyproject.toml не найден. Используются значения по умолчанию.")
+            print("Warning: pyproject.toml не найден. "
+                  "Используются значения по умолчанию.")
             self._config = {}
 
     def get(self, key: str, default: Any = None) -> Any:

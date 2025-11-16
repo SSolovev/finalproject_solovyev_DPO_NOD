@@ -20,6 +20,9 @@ python = ">=3.11"
 prettytable = "^3.16.0"
 click = "^8.3.1"
 toml = "^0.10.2"
+requests = "^2.32.5"
+dotenv = "^0.9.9"
+python-dotenv = "^1.2.1"
 
 [tool.ruff]
 line-length = 88

@@ -1,7 +1,7 @@
 # valutatrade_hub/decorators.py
 import logging
 from functools import wraps
-from typing import Callable, Any
+from typing import Any, Callable
 
 
 def log_action(action_name: str, verbose: bool = False) -> Callable:
@@ -22,7 +22,8 @@ def log_action(action_name: str, verbose: bool = False) -> Callable:
                 'currency': kwargs.get('currency', 'N/A'),
                 'amount': kwargs.get('amount', 'N/A')
             }
-            log_str = ' '.join(f"{k}='{v}'" for k, v in log_params.items() if v != 'N/A')
+            log_str = ' '.join(f"{k}='{v}'" for k, v in log_params.items()
+                               if v != 'N/A')
 
             try:
                 # Логируем вызов
@@ -35,7 +36,8 @@ def log_action(action_name: str, verbose: bool = False) -> Callable:
                 if verbose and isinstance(result, dict):
                     # Добавляем доп. инфо для verbose режима
                     rate = result.get('rate', 0)
-                    success_log += f" rate={rate:.2f} base='{result.get('base_currency', 'N/A')}'"
+                    success_log += (f" rate={rate:.2f} "
+                                    f"base='{result.get('base_currency', 'N/A')}'")
 
                 logging.info(f"FINISH {success_log}")
                 return result

@@ -1,7 +1,6 @@
 import json
 import os
-from typing import List, Dict, Any
-
+from typing import Any
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
 
