@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "valutatrade-hub"
-version = "0.2.0"
+version = "0.2.1"
 description = "Простая файловая база данных с консольным интерфейсом для образовательных целей."
 authors = ["Solovyev Sergey"]
 readme = "README.md"

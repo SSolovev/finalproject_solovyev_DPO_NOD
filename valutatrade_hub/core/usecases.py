@@ -1,5 +1,5 @@
 # valutatrade_hub/core/usecases.py
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Tuple
 
 from ..decorators import log_action
@@ -8,8 +8,6 @@ from ..infra.settings import settings
 from .currencies import Currency, get_currency
 from .exceptions import ApiRequestError
 from .models import Portfolio, User
-
-# --- Управление пользователями и сессией ---
 
 @log_action("REGISTER")
 def register_user(username: str, password: str) -> User:
@@ -64,9 +62,6 @@ def get_logged_in_user() -> User | None:
 def logout():
     db_manager.logout_user()
 
-
-# --- Управление портфелем ---
-
 def get_user_portfolio(user: User) -> Portfolio:
     portfolios_data = db_manager.load_portfolios()
     portfolio_data = next((p for p in portfolios_data
@@ -94,7 +89,7 @@ def get_exchange_rate(from_currency: str, to_currency: str) -> Tuple[float, str]
     last_refresh_str = rates_data.get("last_refresh", "2025-11-16T20:10:00")
     last_refresh_dt = datetime.fromisoformat(last_refresh_str)
 
-    if datetime.now() - last_refresh_dt > timedelta(seconds=ttl):
+    if (datetime.now(timezone.utc) - last_refresh_dt) > timedelta(seconds=ttl):
         raise ApiRequestError(f"Кеш курсов устарел (старше {ttl} секунд). "
                               f"Запустите сервис парсинга.")
 
@@ -103,14 +98,14 @@ def get_exchange_rate(from_currency: str, to_currency: str) -> Tuple[float, str]
     if from_currency == to_currency:
         return 1.0, rates_data.get('last_refresh', 'N/A')
 
-    rate_key = f"{from_currency}_{to_currency}"
-    if rate_key in rates_data:
-        rate_info = rates_data[rate_key]
+    rate_key = f'{from_currency}_{to_currency}'
+    if rate_key in rates_data['pairs']:
+        rate_info = rates_data['pairs'][rate_key]
         return rate_info['rate'], rate_info['updated_at']
 
     reverse_rate_key = f"{to_currency}_{from_currency}"
-    if reverse_rate_key in rates_data:
-        rate_info = rates_data[reverse_rate_key]
+    if reverse_rate_key in rates_data['pairs']:
+        rate_info = rates_data['pairs'][reverse_rate_key]
         if rate_info['rate'] == 0:
             raise ValueError("Нулевой курс, деление невозможно.")
         return 1 / rate_info['rate'], rate_info['updated_at']
@@ -139,7 +134,7 @@ def buy_currency(user: User, currency: str, amount: float):
     target_wallet = portfolio.get_or_create_wallet(currency)
     old_target_balance = target_wallet.balance
 
-    base_wallet.withdraw(cost)  # Может выбросить InsufficientFundsError
+    base_wallet.withdraw(cost)
     target_wallet.deposit(amount)
 
     save_user_portfolio(portfolio)
@@ -156,7 +151,7 @@ def sell_currency(user: User, currency: str, amount: float):
     if amount <= 0:
         raise ValueError("'amount' должен быть положительным числом")
 
-    get_currency(currency)  # Валидация существования валюты
+    get_currency(currency)
     base_currency = settings.get("default_base_currency", "USD")
 
     if currency.upper() == base_currency:

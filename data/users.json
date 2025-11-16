@@ -5,5 +5,19 @@
     "salt": "95c8fae60c792c4225fbf9bf8e3c6028",
     "registration_date": "2025-11-16T16:22:52.550120",
     "hashed_password": "2a35dde6a1b90aee2540c2c1a17cb6595e1d356ea726c4f6f9395da82c5ae6c6"
+  },
+  {
+    "user_id": 2,
+    "username": "sergei",
+    "salt": "1583f95180d3b9b34ccc6d8f513addb3",
+    "registration_date": "2025-11-17T01:33:51.263178",
+    "hashed_password": "88e76dcb4f5e1d3c3079add2d334273befc3e422dba013a240da80e9cbce6ee2"
+  },
+  {
+    "user_id": 3,
+    "username": "sergei1",
+    "salt": "3ff51b669f34b60bcc387f2b3ce55328",
+    "registration_date": "2025-11-17T02:15:24.481671",
+    "hashed_password": "f4c969bb35978507d69309c652bf3e1f89df9d568b901cfae4a66293472d4afb"
   }
 ]
