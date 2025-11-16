@@ -2,7 +2,7 @@ install:
 	poetry install
 
 project:
-	poetry run project
+	poetry run trade
 
 build:
 	poetry build
