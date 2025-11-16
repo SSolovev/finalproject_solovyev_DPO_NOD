@@ -1,75 +1,211 @@
 # ValutaTrade Hub
 
-Это комплексная платформа для симуляции торговли фиатными и криптовалютами.
+**ValutaTrade Hub** — это комплексная платформа для симуляции торговли фиатными и криптовалютами. Система состоит из двух основных сервисов:
+- **Core Service**: Главное приложение с CLI-интерфейсом для управления пользователями, их виртуальными портфелями и совершения сделок.
+- **Parser Service**: Отдельный сервис для сбора актуальных курсов валют с внешних API (CoinGecko, ExchangeRate-API) и сохранения их в локальный кэш.
 
-## Структура проекта
+---
 
-- `data/`: JSON-файлы для хранения данных (пользователи, портфели, курсы).
-- `valutatrade_hub/`: Основной исходный код приложения.
-  - `core/`: Бизнес-логика, модели данных.
-  - `cli/`: Командный интерфейс.
-- `main.py`: Точка входа для запуска CLI.
+##  Основные возможности
 
-## Установка и запуск
+- **Регистрация и аутентификация** пользователей с безопасным хранением паролей.
+- **Управление портфелем**: создание кошельков для разных валют, отслеживание балансов.
+- **Симуляция торговли**: покупка и продажа валют по "реальным" курсам.
+- **Отслеживание курсов**: получение актуальных курсов из локального кэша, который обновляется парсером.
+- **Гибкая система валют**: поддержка фиатных (`FiatCurrency`) и криптовалют (`CryptoCurrency`) через полиморфную архитектуру.
+- **Независимый сервис парсинга**: сбор данных происходит в отдельном, отказоустойчивом модуле.
 
-Для работы проекта требуется Python 3.9+ и Poetry.
+---
 
-1.  **Установите зависимости:**
-    ```bash
-    poetry install
-    ```
+##  Структура проекта
 
-2.  **Запустите приложение:**
-    Все команды выполняются через `poetry run`. Вместо `trade` можно использовать `python main.py`.
+Проект имеет многослойную архитектуру для разделения ответственности.
 
-    ```bash
-    poetry run trade --help
-    ```
+```
+finalproject_solovyev_DPO_NOD/
+│
+├── data/                    # Хранилище данных в формате JSON
+│   ├── users.json           # Пользователи
+│   ├── portfolios.json      # Портфели и кошельки
+│   ├── rates.json           # Локальный кэш актуальных курсов
+│   └── exchange_rates.json  # История всех полученных курсов (лог парсера)
+│
+├── logs/                    # Лог-файлы
+│   └── actions.log          # Логи ключевых действий (buy, sell, login)
+│
+├── valutatrade_hub/
+│   ├── core/                # Ядро бизнес-логики (модели, usecases)
+│   ├── infra/               # Инфраструктурный слой (конфигурация, БД)
+│   ├── parser_service/      # Сервис сбора курсов с внешних API
+│   ├── cli/                 # Командный интерфейс (CLI)
+│   ├── decorators.py        # Декораторы (например, для логирования)
+│   └── logging_config.py    # Настройка логирования
+│
+├── .env                     # Файл для хранения секретов (API-ключ)
+├── .gitignore               # Файл для исключения мусора из Git
+├── main.py                  # Главная точка входа в приложение
+├── Makefile                 # Утилиты для управления проектом
+├── poetry.lock
+├── pyproject.toml           # Файл конфигурации проекта и зависимостей
+└── README.md
+```
 
-## Основные команды
+---
 
-- `register`: Регистрация нового пользователя.
-- `login`: Вход в систему.
-- `logout`: Выход из системы.
-- `show-portfolio`: Показать текущий портфель и балансы.
-- `buy`: Купить валюту.
-- `sell`: Продать валюту.
-- `get-rate`: Получить курс обмена между двумя валютами.
+##  Установка и настройка
 
-### Примеры использования
+Для работы проекта требуется **Python 3.9+** и **Poetry**.
+
+### 1. Клонирование репозитория
 
 ```bash
-# Регистрация
-poetry run trade register --username alice --password mysecretpassword
+git clone <your-repo-url>
+cd finalproject_solovyev_DPO_NOD
+```
 
-# Вход
-poetry run trade login --username alice --password mysecretpassword
+### 2. Настройка Parser Service (API-ключ)
 
-# Просмотр портфеля
-poetry run trade show-portfolio
+Сервис парсинга использует **ExchangeRate-API** для получения курсов фиатных валют.
 
-# Покупка Bitcoin
-poetry run trade buy --currency BTC --amount 0.05
+1.  Зарегистрируйтесь на [ExchangeRate-API](https://www.exchangerate-api.com/) и получите бесплатный API-ключ.
+2.  Создайте в корне проекта файл `.env`.
+3.  Добавьте в него ваш ключ в следующем формате:
 
-# Продажа Ethereum
-poetry run trade sell --currency ETH --amount 1.5
+    ```.env
+    EXCHANGERATE_API_KEY=ВАШ_КЛЮЧ_ЗДЕСЬ
+    ```
+    **Важно:** Файл `.env` уже добавлен в `.gitignore`, чтобы ваш ключ не попал в репозиторий.
 
-# Получение курса
-poetry run trade get-rate --from BTC --to EUR
+### 3. Установка зависимостей
 
-#### 12. `Makefile`
-Простой Makefile для удобства.
+Проект использует `Makefile` для упрощения стандартных операций. Для установки всех зависимостей (включая dev-зависимости, такие как `ruff` для линтинга) выполните команду:
 
-install:
-	@echo ">>> Installing dependencies using Poetry..."
-	poetry install
+```bash
+make install
+```
+Эта команда вызовет `poetry install`, которая создаст виртуальное окружение и установит все пакеты из `pyproject.toml`.
 
-run:
-	@echo ">>> Running CLI application. Use 'poetry run trade --help' for commands."
-	poetry run trade
+### 4. Линтинг кода
 
-help:
-	@echo "Available commands:"
-	@echo "  make install    - Install project dependencies"
-	@echo "  make run        - Run the CLI application (shows help)"
-	poetry run trade --help
+Для проверки кода на соответствие стандартам PEP8 используется `ruff`.
+
+```bash
+make lint
+```
+
+---
+
+##  Запуск и использование
+
+### Запуск приложения
+
+Для запуска CLI-интерфейса используйте команду из `Makefile` или вызовите скрипт `poetry` напрямую.
+
+```bash
+# Через Makefile
+make project
+
+# Или напрямую через Poetry
+poetry run trade --help
+```
+Команда `poetry run trade` — это псевдоним для `poetry run python main.py`, настроенный в `pyproject.toml`.
+
+### Основные команды `Core Service`
+
+| Команда                       | Описание                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `register`                    | Создать нового пользователя.                                              |
+| `login`                       | Войти в систему.                                                          |
+| `logout`                      | Выйти из системы.                                                         |
+| `show-portfolio`              | Показать все кошельки и итоговую стоимость портфеля в базовой валюте (USD). |
+| `buy --currency <КОД> --amount <КОЛ-ВО>` | Купить указанное количество валюты.                                 |
+| `sell --currency <КОД> --amount <КОЛ-ВО>`| Продать указанное количество валюты.                                  |
+| `list-currencies`             | Показать список всех поддерживаемых валют.                                 |
+
+### Команды `Parser Service`
+
+Эти команды управляют сбором данных о курсах.
+
+| Команда                       | Описание                                                                       |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| `update-rates`                | Запустить немедленное обновление курсов из всех источников.                     |
+| `update-rates --source <ИМЯ>` | Обновить курсы только от `coingecko` или `exchangerate`.                         |
+| `show-rates`                  | Показать актуальные курсы из локального кэша `data/rates.json`.                |
+| `show-rates --currency <КОД>` | Показать курс для конкретной валюты.                                            |
+| `show-rates --top <N>`        | Показать N самых дорогих криптовалют.                                           |
+
+### Механизм кэширования и TTL
+
+-   **Core Service** для всех операций (`buy`, `sell`, `show-portfolio`) читает курсы только из локального кэша `data/rates.json`. Это быстро и надежно.
+-   **TTL (Time-To-Live)**: У кэша есть "срок годности", заданный в `pyproject.toml` (по умолчанию 300 секунд). Если данные в кэше устарели, `usecases.get_exchange_rate` выбросит ошибку `ApiRequestError` с сообщением о необходимости обновления.
+-   **Parser Service** (`update-rates`) — единственный, кто пишет в этот кэш, получая свежие данные из внешних API.
+
+---
+
+## Демонстрация работы
+
+Ниже приведен пример полного цикла использования приложения.
+
+*(Здесь вы можете вставить GIF-анимацию, созданную с помощью `asciinema`, или просто оставить текстовые примеры)*
+
+### Пример полного цикла
+
+1.  **Запускаем парсер, чтобы получить свежие курсы:**
+    ```bash
+    $ poetry run trade update-rates
+    INFO: Starting rates update...
+    INFO: Fetching rates from CoinGecko...
+    INFO: CoinGecko: Successfully fetched 3 rates.
+    INFO: Fetching rates from ExchangeRate-API...
+    INFO: ExchangeRate-API: Successfully fetched 3 rates.
+    INFO: Successfully saved data to data/rates.json
+    INFO: Update finished. Total rates processed: 6.
+    Обновление курсов завершено. Проверьте лог-файл для деталей.
+    ```
+
+2.  **Регистрируем нового пользователя:**
+    ```bash
+    $ poetry run trade register
+    Имя пользователя: alice
+    Пароль: 
+    Repeat for confirmation: 
+    Пользователь 'alice' зарегистрирован (id=1).
+    Вам начислен стартовый капитал 10000 USD.
+    Войдите: trade login --username alice --password ****
+    ```
+
+3.  **Входим в систему:**
+    ```bash
+    $ poetry run trade login --username alice --password mysecret
+    Вы вошли как 'alice'
+    ```
+
+4.  **Покупаем немного Bitcoin:**
+    ```bash
+    $ poetry run trade buy --currency BTC --amount 0.05
+    Покупка выполнена: 0.0500 BTC
+    Оценочная стоимость: 2966.86 USD
+    ```
+
+5.  **Проверяем портфель:**
+    ```bash
+    $ poetry run trade show-portfolio
+    Портфель пользователя 'alice' (база: USD):
+    [FIAT] USD — US Dollar (Issuing: United States)
+      Баланс: 7033.1395  USD  (≈   7033.14 USD)
+    ----------------------------------------
+    [CRYPTO] BTC — Bitcoin (Algo: SHA-256, MCAP: 1.12e+12)
+      Баланс: 0.0500     BTC  (≈   2966.86 USD)
+    ----------------------------------------
+    =================================
+    ИТОГО:      10000.00 USD
+    ```
+    
+6. **Демонстрация обработки ошибок (недостаточно средств):**
+    ```bash
+    $ poetry run trade sell --currency BTC --amount 1
+    Ошибка продажи: Недостаточно средств: доступно 0.0500 BTC, требуется 1.0000 BTC
+    ```
+
+### Asciinema Demo
+https://asciinema.org/a/O745dQxS4zHG4rLDZA7cMoKz1
